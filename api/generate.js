@@ -48,12 +48,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { storeName, description, location, imageBase64, includeTrends } = req.body;
+    const { storeName, description, location, address, businessHours, category, includeTrends } = req.body;
 
-    // 1. Centralized Location Resolution
-    // Convert user input (e.g. "Centum") to District (e.g. "Haeundae-gu")
-    const mappedDistrict = getDistrictFromLocation(location);
-    const targetLocation = mappedDistrict || location; // Use mapped district if available, else raw input
+    // 위치 입력이 없어도 주소 기반으로 처리
+    const baseLocation = location || address || '';
+    const mappedDistrict = getDistrictFromLocation(baseLocation);
+    const targetLocation = mappedDistrict || baseLocation;
 
     // 2. Insight Lookup
     // Try to get insight for the target location (District) first
@@ -90,15 +90,20 @@ export default async function handler(req, res) {
 [🚨 중요: 거짓 정보 작성 금지]
 - **절대 입력된 정보에 없는 사실을 지어내지 마.**
 - 특히 **주차장 유무, 가게 크기(넓다/좁다), 구체적인 영업시간** 등은 사용자가 입력하지 않았다면 언급하지 마.
-- 오직 입력된 메뉴, 분위기, 그리고 아래의 지역 인사이트만 활용해.
+- 오직 입력된 메뉴, 분위기, 주소, 영업시간, 그리고 아래의 지역 인사이트만 활용해.
+- **영업시간은 입력된 텍스트를 그대로 사용하고 변형/추론하지 마.**
+- **주소는 입력된 그대로 본문에 포함해.**
 
 [지역 인사이트]
-- 지역: ${exists ? key : location || '미정'}
+- 지역: ${exists ? key : targetLocation || '미정'}
 - 타겟: ${insight.targetName}
 - 페르소나: ${insight.persona}
 - 톤앤매너: ${insight.tone || '친근한 동네 사장님 톤'}
 - 마케팅 포인트: ${insight.marketingPoint}
 - 추천 해시태그 예시: ${insight.hashTags.join(', ')}
+- 업종: ${category || '기타'}
+- 주소: ${address || '주소 미입력'} (본문에 그대로 포함)
+- 영업시간: ${businessHours || '영업시간 미입력'} (입력된 경우 본문에 포함)
 
 ${festivalContext ? `
 [현재 진행중/예정된 지역 축제]
@@ -110,7 +115,7 @@ ${festivalContext}
 [채널별 작성 규칙을 반드시 준수]
 1) 인스타그램 피드(feed)
  - 전략: 감성 & 정보, 사진과 어울리는 긴 호흡
- - 지시: 시선을 끄는 감성적 첫 문장, 메뉴/분위기 시각 묘사, 이모지 풍부
+ - 지시: 시선을 끄는 감성적 첫 문장, 메뉴/분위기 시각 묘사, 이모지 풍부, **주소와 영업시간을 자연스럽게 포함**
  - 주의: 가게 크기나 인테리어 디테일은 입력된 내용이 없으면 "아늑한 분위기" 정도로만 표현해.
  - 해시태그: 지역/메뉴/분위기 태그 10개 이상 필수
  2) 인스타그램 스토리(story)
@@ -118,11 +123,11 @@ ${festivalContext}
  - 지시: 2문장 이내, "오늘만/지금 바로" 같은 CTA 포함, 스티커용 짧은 문구
  3) 지도 리뷰 답글/소식(map)
  - 전략: 신뢰 & 정보
- - 지시: 정중한 말투(~습니다).
- - 주의: **주차/영업시간/길 안내는 입력된 정보에 있을 때만 언급해.** 정보가 없다면 맛과 정성에 대해서만 이야기해.
+ - 지시: 정중한 말투(~습니다). **주소와 영업시간(입력 시) 포함**
+ - 주의: **주차/길 안내는 입력된 정보에 있을 때만 언급해.** 정보가 없다면 맛과 정성에 대해서만 이야기해.
  4) 문자/알림톡(sms)
  - 전략: 친근 & 혜택, 스팸 느낌 금지
- - 지시: 날씨/계절 안부로 시작, 혜택 명확히, "(광고)" 느낌 제거
+ - 지시: 날씨/계절 안부로 시작, 혜택 명확히, "(광고)" 느낌 제거, **주소와 영업시간을 짧게 언급**
 
 ${useTrends ? `
 [오늘 우리 동네 날씨/이슈 반영]
@@ -140,11 +145,10 @@ ${useTrends ? `
 }
 `.trim();
 
-    const imageNote = imageBase64 ? '\n(이미지 업로드됨: solar-pro가 이미지를 직접 읽을 수 없어 텍스트 설명만 참고)' : '';
     const userContent = [
       {
         type: 'text',
-        text: `가게명: ${storeName || '미정'}\n위치: ${location || '미정'}\n메뉴/이벤트: ${description || '메뉴 소개 미입력'}\n트렌드 반영: ${useTrends ? '예' : '아니오'}${imageNote}`
+        text: `가게명: ${storeName || '미정'}\n위치(동/상권): ${targetLocation || '미정'}\n주소: ${address || '주소 미입력'}\n업종: ${category || '기타'}\n영업시간: ${businessHours || '영업시간 미입력'}\n메뉴/이벤트/이점: ${description || '메뉴 소개 미입력'}\n트렌드 반영: ${useTrends ? '예' : '아니오'}`
       }
     ];
 

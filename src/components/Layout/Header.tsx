@@ -1,15 +1,13 @@
+import logo from '@/data/logo.png';
+
 const Header = () => {
   return (
-    <header className="sticky top-0 z-10 border-b border-white/10 bg-slate-900/70 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">부산 로컬 특화</p>
-          <h1 className="text-2xl font-semibold">AI 마케팅 매니저</h1>
-          <p className="text-sm text-slate-300">사진 없이도, 사장님 대신 글 써주는 부울경 전용 도구</p>
-        </div>
-        <div className="hidden text-right text-xs text-slate-400 sm:block">
-          <p>React + Vite + TS + Tailwind</p>
-          <p>Upstage Solar · 부산 데이터 컨텍스트</p>
+    <header className="sticky top-0 z-10 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center px-4 py-3">
+        <img src={logo} alt="DAN.D 로고" className="h-10 w-10 rounded-xl shadow-sm" />
+        <div className="ml-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">DAN.D</p>
+          <h1 className="text-xl font-bold text-slate-900">부산 소상공인 AI 마케팅 매니저</h1>
         </div>
       </div>
     </header>
