@@ -23,27 +23,27 @@ const ResultBlock = ({ title, text, hashtags }: ResultBlockProps) => {
   };
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg shadow-primary/10">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <h3 className="text-lg font-semibold">{title}</h3>
+    <div className="rounded-lg border border-gray-200 bg-gray-50 p-5">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h3 className="text-base font-semibold text-gray-900">{title}</h3>
         <button
           type="button"
           onClick={handleCopy}
           disabled={!text}
-          className="rounded-full border border-primary/50 px-3 py-1 text-xs text-primary transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:border-white/10 disabled:text-slate-400"
+          className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
         >
           {copied ? '복사됨' : '복사하기'}
         </button>
       </div>
       {text ? (
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-100">{text}</p>
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{text}</p>
       ) : (
-        <p className="text-sm text-slate-500">아직 생성된 문구가 없습니다.</p>
+        <p className="text-sm text-gray-500">아직 생성된 문구가 없습니다.</p>
       )}
       {hashtags?.length ? (
-        <div className="mt-3 flex flex-wrap gap-1 text-xs text-slate-300">
+        <div className="mt-3 flex flex-wrap gap-2 text-xs">
           {hashtags.map((tag) => (
-            <span key={tag} className="rounded-full bg-white/10 px-2 py-1">
+            <span key={tag} className="rounded-full bg-white border border-gray-200 px-2.5 py-1 text-gray-700">
               #{tag.replace(/^#/, '')}
             </span>
           ))}

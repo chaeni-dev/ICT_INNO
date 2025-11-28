@@ -97,71 +97,72 @@ const PromotionForm = ({ onCompleted }: PromotionFormProps) => {
   const disabledSubmit = isSubmitting || !storeName.trim() || !description.trim() || !location.trim();
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-xl shadow-primary/5">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-primary">입력</p>
-          <h2 className="text-xl font-semibold">사진을 올리고 동네를 적으면 AI가 써줘요</h2>
-        </div>
-        <span className="text-xs text-slate-400">Vercel Serverless + Solar API</span>
+    <section className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+      <div className="mb-6">
+        <h2 className="mb-2 text-2xl font-bold text-gray-900">홍보 문구 생성</h2>
+        <p className="text-sm text-gray-600">
+          사진과 간단한 정보만 입력하면 AI가 채널별 홍보 문구를 자동으로 생성해드립니다.
+        </p>
       </div>
 
-      <form className="space-y-5" onSubmit={handleSubmit}>
-        <div className="grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
-          <label className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-slate-900/70 p-4">
-            <span className="text-sm text-slate-200">사진 업로드 (메뉴/매장)</span>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="text-xs text-slate-200 file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-slate-950"
-              />
-              <span className="text-xs text-slate-400">미리보기 포함 · 업로드는 선택사항</span>
-            </div>
-            {imagePreview ? (
-              <div className="overflow-hidden rounded-xl border border-white/10 bg-black/30">
-                <img src={imagePreview} alt="업로드 미리보기" className="w-full max-h-52 object-cover" />
+      <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-4">
+            <label className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-gray-700">사진 업로드 (선택사항)</span>
+              <div className="flex flex-col gap-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-white file:cursor-pointer hover:file:bg-teal-dark"
+                />
+                <span className="text-xs text-gray-500">메뉴나 매장 사진을 업로드하시면 더 정확한 문구가 생성됩니다.</span>
               </div>
-            ) : (
-              <div className="flex items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/5 p-6 text-xs text-slate-500">
-                아직 선택한 사진이 없어요.
-              </div>
-            )}
-          </label>
+              {imagePreview ? (
+                <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                  <img src={imagePreview} alt="업로드 미리보기" className="w-full max-h-52 object-cover" />
+                </div>
+              ) : (
+                <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-sm text-gray-400">
+                  사진을 선택해주세요
+                </div>
+              )}
+            </label>
+          </div>
 
-          <div className="space-y-3">
-            <label className="flex flex-col gap-2 text-sm text-slate-200">
-              가게 이름
+          <div className="space-y-4">
+            <label className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-gray-700">가게 이름</span>
               <input
-                className="rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2 outline-none focus:border-primary/60"
+                className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400"
                 value={storeName}
                 onChange={(e) => setStoreName(e.target.value)}
                 placeholder="예) 남포동 OO카페"
               />
             </label>
 
-            <label className="flex flex-col gap-2 text-sm text-slate-200">
-              위치 입력 (자동완성 + 직접 입력)
+            <label className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-gray-700">위치</span>
               <input
-                className="rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2 outline-none focus:border-primary/60"
+                className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 list="location-suggestions"
-                placeholder="서면, 광안리, 괴정동 등 자유 입력"
+                placeholder="서면, 광안리, 괴정동 등"
               />
               <datalist id="location-suggestions">
                 {COMMON_LOCATION_SUGGESTIONS.map((option) => (
                   <option key={option} value={option} />
                 ))}
               </datalist>
-              <span className="text-xs text-slate-400">서면/광안리/해운대/남포동/기장/영도 추천, 다른 동네도 직접 입력 가능</span>
+              <span className="text-xs text-gray-500">서면/광안리/해운대/남포동 등 추천</span>
             </label>
 
-            <label className="flex flex-col gap-2 text-sm text-slate-200">
-              메뉴/이벤트 설명
+            <label className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-gray-700">메뉴/이벤트 설명</span>
               <textarea
-                className="min-h-[120px] rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2 outline-none focus:border-primary/60"
+                className="min-h-[120px] rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="대표 메뉴, 이벤트, 원하는 톤 등을 적어주세요."
@@ -170,47 +171,51 @@ const PromotionForm = ({ onCompleted }: PromotionFormProps) => {
           </div>
         </div>
 
-        <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900/70 p-3 text-sm text-slate-200">
+        <label className="flex items-start gap-3 rounded-lg border border-gray-200 bg-mint-light p-4">
           <input
             type="checkbox"
             checked={includeTrends}
             onChange={(e) => setIncludeTrends(e.target.checked)}
-            className="h-4 w-4"
+            className="mt-0.5 h-4 w-4 text-primary"
           />
           <div>
-            <p className="font-semibold">오늘 우리 동네 분위기/이슈 반영</p>
-            <p className="text-xs text-slate-400">요일·시간·날씨를 가상 생성해 퇴근길/주말 인파 같은 컨텍스트를 문구에 녹입니다.</p>
+            <p className="text-sm font-semibold text-gray-900">오늘 우리 동네 분위기/이슈 반영</p>
+            <p className="mt-1 text-xs text-gray-600">요일·시간·날씨를 가상 생성해 퇴근길/주말 인파 같은 컨텍스트를 문구에 녹입니다.</p>
           </div>
         </label>
 
-        {error ? <p className="text-sm text-amber-300">{error}</p> : null}
+        {error ? (
+          <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800">
+            {error}
+          </div>
+        ) : null}
 
         <button
           type="submit"
           disabled={disabledSubmit}
-          className="w-full rounded-xl bg-primary px-4 py-3 text-center text-sm font-semibold text-slate-950 transition hover:shadow-[0_10px_40px_rgba(31,182,255,0.35)] disabled:cursor-not-allowed disabled:bg-white/30"
+          className="w-full rounded-lg bg-primary px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-teal-dark disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
         >
           {isSubmitting ? 'AI가 글을 작성 중...' : '생성하기'}
         </button>
       </form>
 
       {localResult ? (
-        <div className="mt-5 rounded-2xl border border-primary/30 bg-primary/10 p-4 text-sm text-slate-100">
-          <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="mt-6 rounded-lg border border-primary/30 bg-mint-light p-5">
+          <div className="mb-3 flex items-center justify-between gap-2">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-primary">결과</p>
-              <p className="font-semibold">{localResult.contextSummary || '생성된 홍보글'}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">생성 완료</p>
+              <p className="mt-1 text-sm font-semibold text-gray-900">{localResult.contextSummary || '홍보 문구가 생성되었습니다'}</p>
             </div>
             <button
               type="button"
               onClick={handleCopy}
-              className="rounded-full border border-primary/60 px-3 py-1 text-xs text-primary transition hover:bg-primary/20 disabled:cursor-not-allowed"
+              className="rounded-lg border border-primary bg-white px-3 py-1.5 text-xs font-medium text-primary transition hover:bg-mint-medium disabled:cursor-not-allowed"
               disabled={!mainCopyText}
             >
               {copied ? '복사됨' : '복사하기'}
             </button>
           </div>
-          <p className="whitespace-pre-wrap leading-relaxed">
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
             {mainCopyText || 'AI 결과가 도착하면 여기서 바로 복사할 수 있어요.'}
           </p>
         </div>

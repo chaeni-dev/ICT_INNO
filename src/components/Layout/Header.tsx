@@ -1,16 +1,21 @@
+import logoImage from '@/assets/logo.png'; // '@'는 src 폴더를 가리킵니다.
+
 const Header = () => {
   return (
-    <header className="sticky top-0 z-10 border-b border-white/10 bg-slate-900/70 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">부산 로컬 특화</p>
-          <h1 className="text-2xl font-semibold">AI 마케팅 매니저</h1>
-          <p className="text-sm text-slate-300">사진 없이도, 사장님 대신 글 써주는 부울경 전용 도구</p>
+    <header className="sticky top-0 z-10 border-b border-gray-200 bg-white shadow-sm">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-3">
+          <img src={logoImage} alt="AI 마케팅 매니저 로고" className="h-20 w-20 object-contain" />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Dan_D</h1>
+            <p className="text-sm text-gray-600">부산 소상공인을 위한 마케팅 도구</p>
+          </div>
         </div>
-        <div className="hidden text-right text-xs text-slate-400 sm:block">
-          <p>React + Vite + TS + Tailwind</p>
-          <p>Upstage Solar · 부산 데이터 컨텍스트</p>
-        </div>
+        <nav className="hidden items-center gap-6 md:flex">
+          <a href="#" className="text-sm text-gray-700 hover:text-primary transition">홈</a>
+          <a href="#" className="text-sm text-gray-700 hover:text-primary transition">서비스</a>
+          <a href="#" className="text-sm text-gray-700 hover:text-primary transition">문의</a>
+        </nav>
       </div>
     </header>
   );
