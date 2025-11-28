@@ -8,8 +8,10 @@ dotenv.config({ path: '.env.local' });
 
 const days = ['일', '월', '화', '수', '목', '금', '토'];
 
+const getKstNow = () => new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+
 const getRealTimeContext = async (location) => {
-  const now = new Date();
+  const now = getKstNow();
   const hour = now.getHours();
   const day = days[now.getDay()];
 
