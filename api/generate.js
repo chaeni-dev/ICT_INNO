@@ -48,7 +48,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { storeName, description, location, address, businessHours, category, includeTrends } = req.body;
+    const { storeName, description, location, address, businessHours, category, customCategory, includeTrends } = req.body;
 
     // 위치 입력이 없어도 주소 기반으로 처리
     const baseLocation = location || address || '';
@@ -101,7 +101,7 @@ export default async function handler(req, res) {
 - 톤앤매너: ${insight.tone || '친근한 동네 사장님 톤'}
 - 마케팅 포인트: ${insight.marketingPoint}
 - 추천 해시태그 예시: ${insight.hashTags.join(', ')}
-- 업종: ${category || '기타'}
+- 업종: ${category === '기타' ? customCategory || '기타' : category || '기타'}
 - 주소: ${address || '주소 미입력'} (본문에 그대로 포함)
 - 영업시간: ${businessHours || '영업시간 미입력'} (입력된 경우 본문에 포함)
 
@@ -148,7 +148,7 @@ ${useTrends ? `
     const userContent = [
       {
         type: 'text',
-        text: `가게명: ${storeName || '미정'}\n위치(동/상권): ${targetLocation || '미정'}\n주소: ${address || '주소 미입력'}\n업종: ${category || '기타'}\n영업시간: ${businessHours || '영업시간 미입력'}\n메뉴/이벤트/이점: ${description || '메뉴 소개 미입력'}\n트렌드 반영: ${useTrends ? '예' : '아니오'}`
+        text: `가게명: ${storeName || '미정'}\n위치(동/상권): ${targetLocation || '미정'}\n주소: ${address || '주소 미입력'}\n업종: ${category === '기타' ? customCategory || '기타' : category || '기타'}\n영업시간: ${businessHours || '영업시간 미입력'}\n메뉴/이벤트/이점: ${description || '메뉴 소개 미입력'}\n트렌드 반영: ${useTrends ? '예' : '아니오'}`
       }
     ];
 

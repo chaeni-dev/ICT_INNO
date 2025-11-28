@@ -27,6 +27,7 @@ const PromotionForm = ({ onCompleted }: PromotionFormProps) => {
   const [storeName, setStoreName] = useState('');
   const [address, setAddress] = useState('');
   const [category, setCategory] = useState(CATEGORY_OPTIONS[0]);
+  const [customCategory, setCustomCategory] = useState('');
   const [description, setDescription] = useState('');
   const [businessHours, setBusinessHours] = useState('');
   const [includeTrends, setIncludeTrends] = useState(true);
@@ -75,6 +76,7 @@ const PromotionForm = ({ onCompleted }: PromotionFormProps) => {
           address: address.trim(),
           businessHours: businessHours.trim(),
           category,
+          customCategory: category === '기타' ? customCategory.trim() : '',
           includeTrends
         })
       });
@@ -113,7 +115,13 @@ const PromotionForm = ({ onCompleted }: PromotionFormProps) => {
     }
   };
 
-  const disabledSubmit = isSubmitting || !storeName.trim() || !description.trim() || !address.trim() || !businessHours.trim();
+  const disabledSubmit =
+    isSubmitting ||
+    !storeName.trim() ||
+    !description.trim() ||
+    !address.trim() ||
+    !businessHours.trim() ||
+    (category === '기타' && !customCategory.trim());
 
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-blue-100/60">
@@ -149,6 +157,17 @@ const PromotionForm = ({ onCompleted }: PromotionFormProps) => {
                 ))}
               </select>
             </label>
+            {category === '기타' ? (
+              <label className="flex flex-col gap-2 text-sm text-slate-800">
+                직접 입력 업종
+                <input
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none focus:border-blue-400"
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  placeholder="예) 키즈카페, 꽃집 등"
+                />
+              </label>
+            ) : null}
 
             <label className="flex flex-col gap-2 text-sm text-slate-800">
               상세 주소
