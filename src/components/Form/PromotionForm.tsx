@@ -126,7 +126,6 @@ const PromotionForm = ({ onCompleted }: PromotionFormProps) => {
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-blue-100/60">
         <div className="mb-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-blue-500">입력</p>
           <h2 className="text-xl font-semibold text-slate-900">주소와 정보를 입력하면 AI가 홍보글을 완성해드려요</h2>
         </div>
 
