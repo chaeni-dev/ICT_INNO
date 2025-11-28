@@ -52,7 +52,15 @@ export default async function handler(req, res) {
 
     // 위치 입력이 없어도 주소 기반으로 처리
     const baseLocation = location || address || '';
-    const mappedDistrict = getDistrictFromLocation(baseLocation);
+
+    // 1. District Extraction (Prioritize Address)
+    // If address is available, try to extract district from it first.
+    // Fallback to location if address doesn't yield a district.
+    let mappedDistrict = getDistrictFromLocation(address);
+    if (!mappedDistrict) {
+      mappedDistrict = getDistrictFromLocation(location);
+    }
+
     const targetLocation = mappedDistrict || baseLocation;
 
     // 2. Insight Lookup
@@ -75,9 +83,8 @@ export default async function handler(req, res) {
     // 4. Festival Integration
     // Pass the resolved targetLocation
     const activeFestivals = getActiveFestivals(targetLocation);
-    const festivalContext = activeFestivals.length > 0
-      ? activeFestivals.map(f => `- [축제] ${f.name} (${f.period}): ${f.place}`).join('\n')
-      : null;
+    const activeFestival = activeFestivals.length > 0 ? activeFestivals[0] : null;
+    const festivalMode = !!activeFestival;
 
     if (!process.env.UPSTAGE_API_KEY) {
       res.status(500).json({ error: 'UPSTAGE_API_KEY is not set' });
@@ -85,70 +92,71 @@ export default async function handler(req, res) {
     }
 
     const systemPrompt = `
-너는 부산/경남 골목상권 마케팅 전문가야. 입력된 가게 정보와 지역 인사이트를 바탕으로 글을 써.
+[역할]
+당신은 부산 최고의 핫플 소개 계정을 운영하는 전문 에디터 '단디'입니다.
+광고 느낌이 나는 뻔한 멘트는 절대 쓰지 않습니다.
+소비자가 "어? 여기 어디지?" 하고 멈추게 만드는 **후킹(Hooking)**과 **정보성(Info)**에 집중합니다.
+**주의: 결과물에 절대 "단디입니다", "에디터 단디" 같은 자기소개를 포함하지 마세요. 당신의 이름은 내부 설정일 뿐입니다.**
 
-[🚨 중요: 거짓 정보 작성 금지]
-- **절대 입력된 정보에 없는 사실을 지어내지 마.**
-- 특히 **주차장 유무, 가게 크기(넓다/좁다), 구체적인 영업시간** 등은 사용자가 입력하지 않았다면 언급하지 마.
-- 오직 입력된 메뉴, 분위기, 주소, 영업시간, 그리고 아래의 지역 인사이트만 활용해.
-- **영업시간은 입력된 텍스트를 그대로 사용하고 변형/추론하지 마.**
-- **주소는 입력된 그대로 본문에 포함해.**
+[🚨 중요: 거짓 정보 작성 금지 (Fact-Check)]
+- **입력되지 않은 사실 날조 금지**: 입력 데이터에 없는 내용(웨이팅 여부, 라스트 오더 시간, 주차 정보, '킹왕짱' 같은 과한 수식어)은 절대 덧붙이지 마세요. 모르는 정보는 아예 언급하지 마세요.
+- **제공된 키워드만 확장**: 사용자가 '땅콩크림 라떼'라고 했으면 그 맛을 묘사하는 건 좋지만, '줄 서서 먹는다'는 상황을 가정하지 마세요.
+- **분위기/인테리어 날조 금지**: 입력값에 '빈티지', '모던' 등의 단어가 없다면 절대 "빈티지한 감성", "모던한 디테일" 같은 표현을 쓰지 마세요. 그냥 "아늑한 분위기" 정도로만 표현하세요.
 
-[지역 인사이트]
-- 지역: ${exists ? key : targetLocation || '미정'}
-- 타겟: ${insight.targetName}
-- 페르소나: ${insight.persona}
-- 톤앤매너: ${insight.tone || '친근한 동네 사장님 톤'}
-- 마케팅 포인트: ${insight.marketingPoint}
-- 추천 해시태그 예시: ${insight.hashTags.join(', ')}
-- 업종: ${category === '기타' ? customCategory || '기타' : category || '기타'}
-- 주소: ${address || '주소 미입력'} (본문에 그대로 포함)
-- 영업시간: ${businessHours || '영업시간 미입력'} (입력된 경우 본문에 포함)
+[주소/위치 표기 규칙 (Layout)]
+- **본문(Body)에는 전체 주소 금지**: 글 중간에 "북구 낙동대로 1750에 있는~" 처럼 도로명 주소를 통째로 넣지 마세요. 부자연스럽습니다.
+- **자연스러운 위치 언급**: "부산 북구 덕천동에서" 처럼 행정구역을 나열하지 말고, "덕천동 골목에", "구포역 근처에" 처럼 자연스럽게 말하세요.
+- **상세 주소는 Footer에만**: 정확한 도로명 주소는 반드시 글 맨 마지막 **[Info Box]**에만 넣으세요.
 
-${festivalContext ? `
-[현재 진행중/예정된 지역 축제]
-${festivalContext}
-- 위 축제가 열리고 있다면, 축제를 즐기러 온 손님들을 타겟팅하는 문구를 자연스럽게 포함해.
-- 축제 관련 해시태그도 1~2개 추가해.
-` : ''}
-
-[채널별 작성 규칙을 반드시 준수]
-1) 인스타그램 피드(feed)
- - 전략: 감성 & 정보, 사진과 어울리는 긴 호흡
- - 지시: 시선을 끄는 감성적 첫 문장, 메뉴/분위기 시각 묘사, 이모지 풍부, **주소와 영업시간을 자연스럽게 포함**
- - 주의: 가게 크기나 인테리어 디테일은 입력된 내용이 없으면 "아늑한 분위기" 정도로만 표현해.
- - 해시태그: 지역/메뉴/분위기 태그 10개 이상 필수
- 2) 인스타그램 스토리(story)
- - 전략: 임팩트 & 유도, 3초 가독성
- - 지시: 2문장 이내, "오늘만/지금 바로" 같은 CTA 포함, 스티커용 짧은 문구
- 3) 지도 리뷰 답글/소식(map)
- - 전략: 신뢰 & 정보
- - 지시: 정중한 말투(~습니다). **주소와 영업시간(입력 시) 포함**
- - 주의: **주차/길 안내는 입력된 정보에 있을 때만 언급해.** 정보가 없다면 맛과 정성에 대해서만 이야기해.
- 4) 문자/알림톡(sms)
- - 전략: 친근 & 혜택, 스팸 느낌 금지
- - 지시: 날씨/계절 안부로 시작, 혜택 명확히, "(광고)" 느낌 제거, **주소와 영업시간을 짧게 언급**
-
-${useTrends ? `
-[오늘 우리 동네 날씨/이슈 반영]
-- 지금은 ${contextLine}.
-- feed와 sms는 이 날씨/요일 정보를 반드시 포함해 작성.
-- "비 오는 날엔 파전", "불금엔 치킨"처럼 상황 맞춤 멘트를 섞어라.
-` : ''}
-
-[출력만 순수 JSON으로 반환, 마크다운 금지]
+[출력 형식: JSON Only]
 {
-  "feed": "내용...",
-  "story": "내용...",
-  "map": "내용...",
-  "sms": "내용..."
+  "results": {
+    "instagram_feed": {"text": "...", "hashtags": ["..."]},
+    "instagram_story": {"text": "..."},
+    "sms": {"text": "..."}
+  }
 }
+
+[채널별 작성 가이드 - 인스타 핫플 공식 적용]
+
+1. 📸 인스타그램 피드 (엄격 준수)
+   **[Step 1: Hook - 첫 줄로 사로잡기]**
+   - "안녕하세요" 같은 인사 금지.
+   - 질문, 부정문, 숫자를 활용해 궁금증을 유발할 것.
+   - 예: "아직도 여기 안 가보셨나요?", "사장님이 미쳤어요, 고기 두께 실화?", "부산 토박이만 아는 비밀 맛집 3대장"
+   
+   **[Step 2: Body - 감각적 묘사 + 꿀팁]**
+   - 줄글 금지. 문단 사이 공백 필수.
+   - 맛이나 분위기를 생생하게 묘사 (TMI 방출).
+   - ✨, 📍, 🚨, 💡 같은 이모지를 글머리 기호로 사용해 가독성 높이기.
+   - ${festivalMode ? `🚨 지금 '${activeFestival.name}' 기간이라 웨이팅 있을 수 있음! 오픈런 추천!` : ''}
+
+   **[Step 3: Footer - 정보 박스 (핵심)]**
+   - 본문 맨 마지막에 아래 양식 그대로 정보를 깔끔하게 정리.
+     ━━━━━━━━━━━━━━━
+     📍 ${storeName || '업체명'}
+     🏡 ${address || targetLocation}
+     💡 ${description ? description.substring(0, 15) : '부산 핫플'}...
+     📞 예약/문의 환영
+     ━━━━━━━━━━━━━━━
+
+2. 📱 인스타그램 스토리
+   - 3줄 이내. 배경 사진을 가리지 않는 짧고 강렬한 문구.
+   - 예: "오늘 ${festivalMode ? '축제 보고' : '퇴근하고'} 여기 어때요? 🍺"
+
+3. 📩 문자 (SMS)
+   - 스팸처럼 보이지 않게 단골 손님에게 보내는 안부 문자처럼.
+   - 핵심 혜택(이벤트)은 앞부분에 두괄식으로 배치.
+
+[톤앤매너]
+- 부산 사투리: 과하지 않게, 친근한 '동네 형/누나' 느낌 (~예, ~입니데이).
+- 이모지: 적재적소에 배치하여 시각적 즐거움 제공.
 `.trim();
 
     const userContent = [
       {
         type: 'text',
-        text: `가게명: ${storeName || '미정'}\n위치(동/상권): ${targetLocation || '미정'}\n주소: ${address || '주소 미입력'}\n업종: ${category === '기타' ? customCategory || '기타' : category || '기타'}\n영업시간: ${businessHours || '영업시간 미입력'}\n메뉴/이벤트/이점: ${description || '메뉴 소개 미입력'}\n트렌드 반영: ${useTrends ? '예' : '아니오'}`
+        text: `가게명: ${storeName || '미정'}\n위치: ${targetLocation || '미정'}\n주소: ${address || '주소 미입력'}\n업종: ${category === '기타' ? customCategory || '기타' : category || '기타'}\n영업시간: ${businessHours || '영업시간 미입력'}\n메뉴 및 특징: ${description || '메뉴 소개 미입력'}\n트렌드 반영: ${useTrends ? '예' : '아니오'}`
       }
     ];
 
@@ -164,7 +172,7 @@ ${useTrends ? `
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userContent }
         ],
-        temperature: 0.65
+        temperature: 0.75
       })
     });
 
@@ -179,30 +187,29 @@ ${useTrends ? `
     const rawContent = (data?.choices?.[0]?.message?.content ?? '').trim();
     const parsed = parseJsonSafe(rawContent);
 
+    // 안전장치 (Fallback)
+    const baseHashtags = [
+      `#${targetLocation.split(' ')[0]}맛집`,
+      `#${(storeName || '').replace(/\s/g, '')}`,
+      festivalMode ? `#${activeFestival.name}` : '',
+      '#부산핫플',
+      '#먹스타그램'
+    ].filter(Boolean);
+
     const fallbackResults = {
-      feed: rawContent || '생성된 문구가 없습니다.',
-      story: rawContent || '생성된 문구가 없습니다.',
-      map: rawContent || '생성된 문구가 없습니다.',
-      sms: rawContent || '생성된 문구가 없습니다.'
+      instagram_feed: { text: rawContent, hashtags: baseHashtags },
+      instagram_story: { text: rawContent },
+      sms: { text: rawContent }
     };
 
-    const channelTexts = parsed || fallbackResults;
+    const finalResults = parsed?.results || parsed || fallbackResults;
 
     res.status(200).json({
       mode,
-      contextSummary: useTrends
+      contextSummary: festivalMode ? `🎉 축제 감지: ${activeFestival.name}` : (useTrends
         ? `트렌드 반영: ${contextLine}`
-        : `지역 모드: ${mode === 'EXPERT' ? `${key} 인사이트 적용` : '동네 추론 모드'}`,
-      feed: channelTexts.feed,
-      story: channelTexts.story,
-      map: channelTexts.map,
-      sms: channelTexts.sms,
-      results: {
-        instagram_feed: { text: channelTexts.feed, hashtags: BUSAN_SPOT_INSIGHTS[key]?.hashTags || [] },
-        instagram_story: { text: channelTexts.story },
-        map_review: { text: channelTexts.map },
-        sms: { text: channelTexts.sms }
-      }
+        : `지역 모드: ${mode === 'EXPERT' ? `${key} 인사이트 적용` : '동네 추론 모드'}`),
+      results: finalResults
     });
   } catch (error) {
     console.error('generate api error', error);
