@@ -1,21 +1,4 @@
-export type BusanSpotKey =
-  | '서면/전포'
-  | '광안리'
-  | '해운대'
-  | '남포동(자갈치/국제시장)'
-  | '기장(오시리아)'
-  | '영도(흰여울)'
-  | '기타(동네)';
-
-export interface BusanSpotInsight {
-  targetName: string;
-  persona: string;
-  marketingPoint: string;
-  hashTags: string[];
-  tone: string;
-}
-
-export const BUSAN_SPOT_INSIGHTS: Record<BusanSpotKey, BusanSpotInsight> = {
+export const BUSAN_SPOT_INSIGHTS = {
   '서면/전포': {
     targetName: 'MZ 뚜벅이족 & 감성 소비족',
     persona: '대중교통을 이용해 골목 맛집과 예쁜 카페를 찾아다니는 20~30대 여성',
@@ -67,22 +50,13 @@ export const BUSAN_SPOT_INSIGHTS: Record<BusanSpotKey, BusanSpotInsight> = {
   }
 };
 
-export const COMMON_LOCATION_SUGGESTIONS: string[] = [
-  '서면/전포',
-  '광안리',
-  '해운대',
-  '남포동(자갈치/국제시장)',
-  '기장(오시리아)',
-  '영도(흰여울)'
-];
-
-export const getInsight = (location: string | null | undefined) => {
+export const getInsight = (location) => {
   const normalized = (location ?? '').trim();
   const lower = normalized.toLowerCase();
-  let matchedKey: BusanSpotKey | null = null;
+  let matchedKey = null;
 
   if (lower) {
-    (Object.keys(BUSAN_SPOT_INSIGHTS) as BusanSpotKey[]).forEach((key) => {
+    Object.keys(BUSAN_SPOT_INSIGHTS).forEach((key) => {
       if (matchedKey) return;
       const candidate = key.toLowerCase();
       if (candidate.includes(lower) || lower.includes(candidate)) {
@@ -92,7 +66,7 @@ export const getInsight = (location: string | null | undefined) => {
   }
 
   const exists = Boolean(matchedKey);
-  const key: BusanSpotKey = matchedKey ?? '기타(동네)';
+  const key = matchedKey ?? '기타(동네)';
   const insight = BUSAN_SPOT_INSIGHTS[key];
 
   return { insight, exists, key };

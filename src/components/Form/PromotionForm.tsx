@@ -67,9 +67,29 @@ const PromotionForm = ({ onCompleted }: PromotionFormProps) => {
         throw new Error(err.error || '생성에 실패했어요. 잠시 후 다시 시도해주세요.');
       }
 
-      const data: PromotionResponse = await res.json();
-      setLocalResult(data);
-      onCompleted?.(data);
+      const data = await res.json();
+      const feedText =
+        (data?.feed as string | undefined) ||
+        (data?.results?.instagram_feed?.text as string | undefined) ||
+        (data?.result as string | undefined) ||
+        '';
+      const storyText =
+        (data?.story as string | undefined) || (data?.results?.instagram_story?.text as string | undefined) || feedText;
+      const mapText =
+        (data?.map as string | undefined) || (data?.results?.map_review?.text as string | undefined) || feedText;
+      const smsText = (data?.sms as string | undefined) || (data?.results?.sms?.text as string | undefined) || feedText;
+
+      const normalized: PromotionResponse = {
+        contextSummary: data?.contextSummary,
+        results: {
+          instagram_feed: { text: feedText, hashtags: data?.results?.instagram_feed?.hashtags || [] },
+          instagram_story: { text: storyText },
+          map_review: { text: mapText },
+          sms: { text: smsText }
+        }
+      };
+      setLocalResult(normalized);
+      onCompleted?.(normalized);
     } catch (err) {
       setError(err instanceof Error ? err.message : '생성에 실패했어요.');
     } finally {
@@ -148,14 +168,16 @@ const PromotionForm = ({ onCompleted }: PromotionFormProps) => {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 list="location-suggestions"
-                placeholder="서면, 광안리, 괴정동 등 자유 입력"
+                placeholder="서면/전포, 광안리, 괴정동 등 자유 입력"
               />
               <datalist id="location-suggestions">
                 {COMMON_LOCATION_SUGGESTIONS.map((option) => (
                   <option key={option} value={option} />
                 ))}
               </datalist>
-              <span className="text-xs text-slate-400">서면/광안리/해운대/남포동/기장/영도 추천, 다른 동네도 직접 입력 가능</span>
+              <span className="text-xs text-slate-400">
+                서면/전포, 광안리, 해운대, 남포동(자갈치/국제시장), 기장(오시리아), 영도(흰여울) 추천 · 다른 동네도 직접 입력 가능
+              </span>
             </label>
 
             <label className="flex flex-col gap-2 text-sm text-slate-200">
@@ -178,7 +200,7 @@ const PromotionForm = ({ onCompleted }: PromotionFormProps) => {
             className="h-4 w-4"
           />
           <div>
-            <p className="font-semibold">오늘 우리 동네 분위기/이슈 반영</p>
+            <p className="font-semibold">오늘 우리 동네 날씨/이슈 반영</p>
             <p className="text-xs text-slate-400">요일·시간·날씨를 가상 생성해 퇴근길/주말 인파 같은 컨텍스트를 문구에 녹입니다.</p>
           </div>
         </label>
