@@ -1,20 +1,31 @@
 import dotenv from 'dotenv';
 import { BUSAN_SPOT_INSIGHTS, getInsight } from './busanData.js';
+import { getActiveFestivals, getDistrictFromLocation } from './festivalUtils.js';
+import { fetchWeather } from './weatherUtils.js';
 
 // Ensure local dev loads .env.local (Vercel dev should also inject env)
 dotenv.config({ path: '.env.local' });
 
 const days = ['일', '월', '화', '수', '목', '금', '토'];
-const weatherPresets = ['맑은', '쌀쌀한', '포근한', '후덥지근한', '보슬비 오는', '서늘한'];
-const timePresets = ['아침', '점심', '퇴근길 저녁', '불금 밤', '주말 낮', '주말 저녁'];
 
-const randomPick = (list) => list[Math.floor(Math.random() * list.length)];
+const getRealTimeContext = async (location) => {
+  const now = new Date();
+  const hour = now.getHours();
+  const day = days[now.getDay()];
 
-const getContextData = () => {
-  const day = days[new Date().getDay()];
-  const weather = randomPick(weatherPresets);
-  const time = randomPick(timePresets);
-  return `${day}요일 ${time}, ${weather} 날씨`;
+  let timeDesc = '낮';
+  if (hour >= 6 && hour < 11) timeDesc = '상쾌한 아침';
+  else if (hour >= 11 && hour < 14) timeDesc = '점심 시간';
+  else if (hour >= 14 && hour < 17) timeDesc = '나른한 오후';
+  else if (hour >= 17 && hour < 20) timeDesc = '퇴근길 저녁';
+  else if (hour >= 20 || hour < 6) timeDesc = '감성 돋는 밤';
+
+  // Special cases
+  if (day === '금' && hour >= 18) timeDesc = '불금 저녁';
+  if (day === '토' || day === '일') timeDesc = `여유로운 ${day}요일 ${timeDesc}`;
+
+  const weather = await fetchWeather(location);
+  return `${day}요일 ${timeDesc}, ${weather}`;
 };
 
 const parseJsonSafe = (text) => {
@@ -38,10 +49,35 @@ export default async function handler(req, res) {
 
   try {
     const { storeName, description, location, imageBase64, includeTrends } = req.body;
-    const { insight, exists, key } = getInsight(location);
+
+    // 1. Centralized Location Resolution
+    // Convert user input (e.g. "Centum") to District (e.g. "Haeundae-gu")
+    const mappedDistrict = getDistrictFromLocation(location);
+    const targetLocation = mappedDistrict || location; // Use mapped district if available, else raw input
+
+    // 2. Insight Lookup
+    // Try to get insight for the target location (District) first
+    let insightData = getInsight(targetLocation);
+
+    // If mapped district didn't return insight (rare if map is good), try raw input just in case
+    if (!insightData.exists && mappedDistrict && targetLocation !== location) {
+      insightData = getInsight(location);
+    }
+
+    const { insight, exists, key } = insightData;
     const mode = exists ? 'EXPERT' : 'GENERAL';
     const useTrends = includeTrends !== false;
-    const contextLine = useTrends ? getContextData() : null;
+
+    // 3. Real-time Context (Weather)
+    // Pass the resolved targetLocation to ensure weather is fetched for the correct district
+    const contextLine = useTrends ? await getRealTimeContext(targetLocation) : null;
+
+    // 4. Festival Integration
+    // Pass the resolved targetLocation
+    const activeFestivals = getActiveFestivals(targetLocation);
+    const festivalContext = activeFestivals.length > 0
+      ? activeFestivals.map(f => `- [축제] ${f.name} (${f.period}): ${f.place}`).join('\n')
+      : null;
 
     if (!process.env.UPSTAGE_API_KEY) {
       res.status(500).json({ error: 'UPSTAGE_API_KEY is not set' });
@@ -51,6 +87,11 @@ export default async function handler(req, res) {
     const systemPrompt = `
 너는 부산/경남 골목상권 마케팅 전문가야. 입력된 가게 정보와 지역 인사이트를 바탕으로 글을 써.
 
+[🚨 중요: 거짓 정보 작성 금지]
+- **절대 입력된 정보에 없는 사실을 지어내지 마.**
+- 특히 **주차장 유무, 가게 크기(넓다/좁다), 구체적인 영업시간** 등은 사용자가 입력하지 않았다면 언급하지 마.
+- 오직 입력된 메뉴, 분위기, 그리고 아래의 지역 인사이트만 활용해.
+
 [지역 인사이트]
 - 지역: ${exists ? key : location || '미정'}
 - 타겟: ${insight.targetName}
@@ -59,18 +100,27 @@ export default async function handler(req, res) {
 - 마케팅 포인트: ${insight.marketingPoint}
 - 추천 해시태그 예시: ${insight.hashTags.join(', ')}
 
+${festivalContext ? `
+[현재 진행중/예정된 지역 축제]
+${festivalContext}
+- 위 축제가 열리고 있다면, 축제를 즐기러 온 손님들을 타겟팅하는 문구를 자연스럽게 포함해.
+- 축제 관련 해시태그도 1~2개 추가해.
+` : ''}
+
 [채널별 작성 규칙을 반드시 준수]
 1) 인스타그램 피드(feed)
  - 전략: 감성 & 정보, 사진과 어울리는 긴 호흡
  - 지시: 시선을 끄는 감성적 첫 문장, 메뉴/분위기 시각 묘사, 이모지 풍부
+ - 주의: 가게 크기나 인테리어 디테일은 입력된 내용이 없으면 "아늑한 분위기" 정도로만 표현해.
  - 해시태그: 지역/메뉴/분위기 태그 10개 이상 필수
-2) 인스타그램 스토리(story)
+ 2) 인스타그램 스토리(story)
  - 전략: 임팩트 & 유도, 3초 가독성
  - 지시: 2문장 이내, "오늘만/지금 바로" 같은 CTA 포함, 스티커용 짧은 문구
-3) 지도 리뷰 답글/소식(map)
+ 3) 지도 리뷰 답글/소식(map)
  - 전략: 신뢰 & 정보
- - 지시: 정중한 말투(~습니다), 주차/영업시간/길 안내 등 실질 팁 자연스럽게
-4) 문자/알림톡(sms)
+ - 지시: 정중한 말투(~습니다).
+ - 주의: **주차/영업시간/길 안내는 입력된 정보에 있을 때만 언급해.** 정보가 없다면 맛과 정성에 대해서만 이야기해.
+ 4) 문자/알림톡(sms)
  - 전략: 친근 & 혜택, 스팸 느낌 금지
  - 지시: 날씨/계절 안부로 시작, 혜택 명확히, "(광고)" 느낌 제거
 

@@ -121,7 +121,7 @@ const PromotionForm = ({ onCompleted }: PromotionFormProps) => {
       <div className="mb-4 flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-primary">입력</p>
-          <h2 className="text-xl font-semibold">사진을 올리고 동네를 적으면 AI가 써줘요</h2>
+          <h2 className="text-xl font-semibold">사진과 정보만 입력하면 AI가 홍보글을 완성해드려요</h2>
         </div>
         <span className="text-xs text-slate-400">Vercel Serverless + Solar API</span>
       </div>
@@ -181,12 +181,12 @@ const PromotionForm = ({ onCompleted }: PromotionFormProps) => {
             </label>
 
             <label className="flex flex-col gap-2 text-sm text-slate-200">
-              메뉴/이벤트 설명
+              메뉴/이벤트/이점 설명
               <textarea
                 className="min-h-[120px] rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2 outline-none focus:border-primary/60"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="대표 메뉴, 이벤트, 원하는 톤 등을 적어주세요."
+                placeholder={`대표 메뉴, 이벤트, 영업시간, 이점 등을 적어주세요.\n ex) 갓내린 원두, 시간 16:00-23:00, 넓은 주차장`}
               />
             </label>
           </div>
