@@ -113,6 +113,7 @@ export default async function handler(req, res) {
   "results": {
     "instagram_feed": {"text": "...", "hashtags": ["..."]},
     "instagram_story": {"text": "..."},
+    "map_review": {"text": "..."},
     "sms": {"text": "..."}
   }
 }
@@ -144,7 +145,14 @@ export default async function handler(req, res) {
    - 3줄 이내. 배경 사진을 가리지 않는 짧고 강렬한 문구.
    - 예: "오늘 ${festivalMode ? '축제 보고' : '퇴근하고'} 여기 어때요? 🍺"
 
-3. 📩 문자 (SMS)
+3. 🗺️ 지도/플레이스 업체 소개 (네이버 스마트플레이스 등)
+   - **목적**: 가게를 검색한 손님에게 보여주는 **'공식 업체 소개글'**.
+   - **화자**: 사장님 또는 가게를 대표하는 관리자. (손님인 척하는 후기 말투 절대 금지)
+   - **내용**: 우리 가게만의 철학, 대표 메뉴의 차별점, 재료에 대한 자부심, 매장 분위기 등을 진정성 있게 전달.
+   - **톤앤매너**: 정중하고 신뢰감 있는 '해요체' 또는 '습니다체'. 방문을 환영하는 따뜻한 어조.
+   - **예시**: "매일 아침 직접 공수해온 신선한 재료로 정성을 다해 요리합니다. 아늑한 분위기 속에서 소중한 사람들과 특별한 추억을 만들어보세요."
+
+4. 📩 문자 (SMS)
    - 스팸처럼 보이지 않게 단골 손님에게 보내는 안부 문자처럼.
    - 핵심 혜택(이벤트)은 앞부분에 두괄식으로 배치.
 
@@ -163,7 +171,7 @@ export default async function handler(req, res) {
     const response = await fetch('https://api.upstage.ai/v1/solar/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${process.env.UPSTAGE_API_KEY}`,
+        Authorization: `Bearer ${process.env.UPSTAGE_API_KEY} `,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -189,9 +197,9 @@ export default async function handler(req, res) {
 
     // 안전장치 (Fallback)
     const baseHashtags = [
-      `#${targetLocation.split(' ')[0]}맛집`,
-      `#${(storeName || '').replace(/\s/g, '')}`,
-      festivalMode ? `#${activeFestival.name}` : '',
+      `#${targetLocation.split(' ')[0]} 맛집`,
+      `#${(storeName || '').replace(/\s/g, '')} `,
+      festivalMode ? `#${activeFestival.name} ` : '',
       '#부산핫플',
       '#먹스타그램'
     ].filter(Boolean);
@@ -199,6 +207,7 @@ export default async function handler(req, res) {
     const fallbackResults = {
       instagram_feed: { text: rawContent, hashtags: baseHashtags },
       instagram_story: { text: rawContent },
+      map_review: { text: rawContent },
       sms: { text: rawContent }
     };
 
@@ -206,9 +215,9 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       mode,
-      contextSummary: festivalMode ? `🎉 축제 감지: ${activeFestival.name}` : (useTrends
-        ? `트렌드 반영: ${contextLine}`
-        : `지역 모드: ${mode === 'EXPERT' ? `${key} 인사이트 적용` : '동네 추론 모드'}`),
+      contextSummary: festivalMode ? `🎉 축제 감지: ${activeFestival.name} ` : (useTrends
+        ? `트렌드 반영: ${contextLine} `
+        : `지역 모드: ${mode === 'EXPERT' ? `${key} 인사이트 적용` : '동네 추론 모드'} `),
       results: finalResults
     });
   } catch (error) {
