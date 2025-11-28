@@ -1,15 +1,27 @@
+import { Link } from 'react-router-dom';
+
 const Header = () => {
   return (
-    <header className="sticky top-0 z-10 border-b border-white/10 bg-slate-900/70 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">부산 로컬 특화</p>
-          <h1 className="text-2xl font-semibold">AI 마케팅 매니저</h1>
-          <p className="text-sm text-slate-300">사진 없이도, 사장님 대신 글 써주는 부울경 전용 도구</p>
+    <header className="sticky top-0 z-10 border-b border-gray-200 bg-white">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-8">
+          <Link to="/" className="text-2xl font-bold text-primary hover:text-kakao-dark">
+            AI 마케팅 매니저
+          </Link>
+          <nav className="hidden items-center gap-6 md:flex">
+            <a href="#" className="text-sm text-gray-700 hover:text-primary">서비스소개</a>
+            <a href="#" className="text-sm text-gray-700 hover:text-primary">다운로드</a>
+            <a href="#" className="text-sm text-gray-700 hover:text-primary">요금안내</a>
+            <a href="#" className="text-sm text-gray-700 hover:text-primary">새소식</a>
+          </nav>
         </div>
-        <div className="hidden text-right text-xs text-slate-400 sm:block">
-          <p>React + Vite + TS + Tailwind</p>
-          <p>Upstage Solar · 부산 데이터 컨텍스트</p>
+        <div className="flex items-center gap-4">
+          <button className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-kakao-dark">
+            도입문의
+          </button>
+          <button className="hidden rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 md:block">
+            관리자
+          </button>
         </div>
       </div>
     </header>

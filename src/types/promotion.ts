@@ -1,6 +1,8 @@
-export type Tone = 'seoul-instagram' | 'busan-dialect';
-export type Timing = 'today' | 'weekend' | 'payday' | 'festival';
-export type Channel = 'instagram_feed' | 'instagram_story' | 'map_review' | 'sms';
+export type Tone = 'seoul-instagram' | 'busan-dialect' | 'friendly' | 'professional' | 'humorous' | 'emotional';
+export type Timing = 'today' | 'weekend' | 'payday' | 'festival' | 'weekday' | 'evening' | 'lunch' | 'specific-date';
+export type Channel = 'instagram_feed' | 'instagram_story' | 'map_review' | 'sms' | 'facebook' | 'blog' | 'kakao-channel';
+export type TargetAudience = 'all' | 'young' | 'family' | 'office-worker' | 'student' | 'elderly';
+export type PromotionPurpose = 'new-opening' | 'event' | 'regular' | 'seasonal' | 'emergency';
 
 export interface PromotionRequest {
   storeName: string;
@@ -14,6 +16,11 @@ export interface PromotionRequest {
   channels: Channel[];
   useLocalContext: boolean;
   photoDescription?: string;
+  targetAudience?: TargetAudience;
+  promotionPurpose?: PromotionPurpose;
+  priceRange?: string;
+  operatingHours?: string;
+  specialRequest?: string;
 }
 
 export interface ChannelResult {

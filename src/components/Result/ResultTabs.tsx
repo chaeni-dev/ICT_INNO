@@ -12,25 +12,24 @@ const ResultTabs = ({ data }: ResultTabsProps) => {
   const sms = data?.results.sms;
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-xl shadow-primary/5">
-      <div className="mb-3 flex items-center justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-primary">AI 결과</p>
-          <h2 className="text-xl font-semibold">채널별 문구</h2>
-        </div>
-        <span className="text-xs text-slate-400">인스타 / 스토리 / 지도 / 문자</span>
+    <section className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+      <div className="mb-6">
+        <h2 className="mb-2 text-2xl font-bold text-gray-900">생성된 홍보 문구</h2>
+        <p className="text-sm text-gray-600">채널별로 최적화된 문구가 생성되었습니다.</p>
       </div>
 
       {data?.contextSummary ? (
-        <div className="mb-4 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
-          <p className="font-semibold text-primary">오늘의 로컬 컨텍스트</p>
-          <p className="text-slate-100">{data.contextSummary}</p>
+        <div className="mb-6 rounded-lg border border-primary/30 bg-blue-50 px-4 py-3 text-sm">
+          <p className="mb-1 font-semibold text-primary">오늘의 로컬 컨텍스트</p>
+          <p className="text-gray-700">{data.contextSummary}</p>
         </div>
       ) : (
-        <p className="mb-4 text-sm text-slate-500">아직 생성되지 않았습니다. 오른쪽 폼을 채워 AI에게 맡겨보세요.</p>
+        <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+          아직 생성되지 않았습니다. 왼쪽 폼을 채워 AI에게 맡겨보세요.
+        </div>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         <ResultBlock title="인스타그램 피드" text={feed?.text} hashtags={feed?.hashtags} />
         <ResultBlock title="인스타그램 스토리" text={story?.text} />
         <ResultBlock title="지도 리뷰" text={map?.text} />
